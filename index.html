@@ -1,0 +1,265 @@
+<html>
+<head>
+	<title>Advent Calendar</title>
+	<script>
+		const ornamentSize = 100;
+		const rowsAndColumns = 5;
+		let todayDate;
+		let loadedImageCount;
+		let pictureArray;
+		let ornamentArray;
+		let buttonImage;
+		const pictureCount = 25;
+		const ornamentCount = 6;
+		const totalImageCount = pictureCount + ornamentCount + 1;
+		const windowWidth = 800;
+		const windowHeight = 600;
+		const columnSize = windowWidth / rowsAndColumns;
+		const rowSize = windowHeight / rowsAndColumns;
+		let theCanvas;
+		let theContext;
+		const ornamentScreen = 0;
+		const pictureScreen = 1;
+		const notOpenScreen = 2;
+		let currentScreen;
+		let selectedPicture = 0;
+		const ornamentData = [];
+		const buttonWidth = 120;
+		const buttonHeight = 60;
+		const buttonX = windowWidth / 2 - buttonWidth / 2;
+		const buttonY = windowHeight - buttonHeight - 2;
+		let attributionDiv;
+		const pictureAttribution = [
+			{ creator: "Gary Spears", source: "https://www.pexels.com/photo/close-up-of-christmas-decoration-hanging-on-tree-250177/" },
+			{ creator: "Tim Mossholder", source: "https://www.pexels.com/photo/bokeh-photography-of-lights-383646/" },
+			{ creator: "Brett Sayles", source: "https://www.pexels.com/photo/merry-christmas-sign-1656564/" },
+			{ creator: "Brett Sayles", source: "https://www.pexels.com/photo/lighted-christmas-tree-1708601/" },
+			{ creator: "Todd Trapani", source: "https://www.pexels.com/photo/shallow-focus-photography-of-red-bauble-1622539/" },
+			{ creator: "Hert Niks", source: "https://www.pexels.com/photo/photo-of-christmas-balls-3224164/" },
+			{ creator: "Daniel Reche", source: "https://www.pexels.com/photo/santa-claus-plush-toy-1556679/" },
+			{ creator: "picjumbo.com", source: "https://www.pexels.com/photo/clear-long-stem-drinking-glass-196648/" },
+			{ creator: "Lisa Fotios", source: "https://www.pexels.com/photo/rain-of-snow-in-town-painting-730256/" },
+			{ creator: "Pixabay", source: "https://www.pexels.com/photo/acorn-advent-blur-bright-278508/" },
+			{ creator: "Susanne Jutzeler, suju-foto", source: "https://www.pexels.com/photo/santa-claus-beside-brown-bauble-decor-1578010/" },
+			{ creator: "Element5 Digital", source: "https://www.pexels.com/photo/four-boxes-near-lighted-string-lights-712323/" },
+			{ creator: "Bob SpringBob54", source: "https://www.pexels.com/photo/glass-bauble-reflecting-christmas-tree-306864/" },
+			{ creator: "Barry Plott", source: "https://www.pexels.com/photo/three-white-snowman-decorations-753500/" },
+			{ creator: "Eftodii Aurelia", source: "https://www.pexels.com/photo/close-up-photography-of-white-cat-besides-christmas-lights-735423/" },
+			{ creator: "Dominika Roseclay", source: "https://www.pexels.com/photo/dachshund-dog-wearing-a-red-sweater-755380/" },
+			{ creator: "Frans van Heerden", source: "https://www.pexels.com/photo/close-up-photo-of-christmas-tree-with-ornaments-1615803/" },
+			{ creator: "Toni Cuenca", source: "https://www.pexels.com/photo/green-christmas-tree-688573/" },
+			{ creator: "Kristina Paukshtite", source: "https://www.pexels.com/photo/green-christmas-tree-with-string-lights-and-hanging-decors-754174/" },
+			{ creator: "David Orsborne", source: "https://www.pexels.com/photo/brown-joy-candle-holder-724825/" },
+			{ creator: "Oleksandr Pidvalnyi", source: "https://www.pexels.com/photo/close-up-of-two-flute-glasses-filled-with-sparkling-wine-wuth-ribbons-and-christmas-decor-3036525/" },
+			{ creator: "picjumbo.com", source: "https://www.pexels.com/photo/brown-acorn-near-clear-long-stem-wine-glass-225224/" },
+			{ creator: "NastyaSensei", source: "https://www.pexels.com/photo/photo-of-christmas-tree-during-night-936706/" },
+			{ creator: "Tim Gouw", source: "https://www.pexels.com/photo/close-up-of-baby-girl-246576/" },
+			{ creator: "Sebi Pintilie", source: "https://www.pexels.com/photo/christmas-tree-with-decorations-during-nighttime-759948/" }
+		];	
+		
+		window.onload = function() {
+			attributionDiv = document.getElementById("attributionDiv");
+			theCanvas = document.getElementById("theCanvas");
+			theContext = theCanvas.getContext("2d");
+			const today = new Date();
+			const todayMonth = today.getMonth() + 1;
+			todayDate = today.getDate();
+			if (todayMonth == 12) {
+				currentScreen = ornamentScreen;
+			}
+			else {
+				currentScreen = notOpenScreen;
+			}
+			for (let i = 0; i < pictureCount; i++) {
+				const x = i % rowsAndColumns * columnSize + columnSize / 2 - ornamentSize / 2;
+				const y = Math.floor(i / rowsAndColumns) * rowSize + rowSize / 2 - ornamentSize / 2;
+				const centerX = i % rowsAndColumns * columnSize + columnSize / 2;
+				const centerY = Math.floor(i / rowsAndColumns) * rowSize + rowSize / 2;
+				ornamentData[i] = { x: x, y: y, 
+					centerX: centerX, centerY: centerY, 
+					color: Math.floor(Math.random() * ornamentCount) 
+				};
+			}
+			loadedImageCount = 0;
+			pictureArray = [];			
+			for (let i = 1; i <= pictureCount; i++) {
+				const newImage = new Image();
+				if (i <= 9) {
+					newImage.src = `images/0${i}.jpg`;
+				}
+				else {
+					newImage.src = `images/${i}.jpg`;
+				}
+				pictureArray[i - 1] = newImage;
+				pictureArray[i - 1].onload = incrementLoadedImageCount;
+			}
+			ornamentArray  = [];			
+			for (let i = 0; i < ornamentCount; i++) {
+				const newImage = new Image();
+				if (i <= 9) {
+					newImage.src = `images/ornament0${i}.png`;
+				}
+				else {
+					newImage.src = `images/ornament${i}.png`;
+				}
+				ornamentArray[i] = newImage;
+				ornamentArray[i].onload = incrementLoadedImageCount;
+			}
+			buttonImage = new Image();
+			buttonImage.src = "images/button.png";
+			buttonImage.onload = incrementLoadedImageCount;
+		}
+		
+		function incrementLoadedImageCount() {
+			loadedImageCount++;
+			if (loadedImageCount == totalImageCount) {
+				theCanvas.addEventListener('mousemove', function (evt) {
+					handleMouseMovement(evt);
+				}, false);
+				theCanvas.addEventListener('mousedown', function (evt) {
+					handleMouseClick(evt);
+				}, false);
+				main();
+			}
+		}
+		
+		function main() {
+			if (currentScreen == ornamentScreen) {
+				drawOrnaments();
+			}
+			if (currentScreen == pictureScreen) {
+				drawPicture();
+			}
+			if (currentScreen == notOpenScreen) {
+				drawNotOpen();
+			}
+		}
+		
+		function drawOrnaments() {
+			attributionDiv.innerHTML = "Click an ornament to select a day.";
+			theContext.clearRect(0, 0, windowWidth, windowHeight);
+			theContext.textAlign = "center";
+			theContext.font = "30px Sans Serif";
+			for (let i = 0; i < Math.min(todayDate, pictureArray.length); i++) {
+				const x = ornamentData[i].x;
+				const y = ornamentData[i].y;
+				const color = ornamentData[i].color;
+				theContext.drawImage(ornamentArray[color], x, y);
+				theContext.fillText(`${i + 1}`, x + ornamentSize / 2, y + ornamentSize * .6);
+			}			
+		}
+		
+		function drawPicture() {
+			attributionDiv.innerHTML = "";
+			const attributionLink = document.createElement("a");
+			attributionLink.innerHTML = `Photo by ${pictureAttribution[selectedPicture].creator}`;
+			attributionLink.setAttribute("href", pictureAttribution[selectedPicture].source);
+			attributionLink.setAttribute("target", "_blank");
+			attributionDiv.appendChild(attributionLink);
+			theContext.clearRect(0, 0, windowWidth, windowHeight);
+			const x = windowWidth / 2 - pictureArray[selectedPicture].width / 2;
+			theContext.drawImage(pictureArray[selectedPicture], x, 0);
+			theContext.textAlign = "center";
+			theContext.font = "30px Sans Serif";
+			theContext.drawImage(buttonImage, buttonX, buttonY);
+			theContext.fillText("BACK", buttonX + buttonWidth * .5, buttonY + buttonHeight * .65);
+		}
+
+		function drawNotOpen() {
+			attributionDiv.innerHTML = "";
+			theContext.textAlign = "center";
+			theContext.font = "30px Sans Serif";
+			theContext.fillStyle = "red";
+			theContext.fillText("Come back during December", windowWidth / 2, windowHeight / 2 - 20);
+			theContext.fillStyle = "green";
+			theContext.fillText("for Advent calendar!", windowWidth / 2, windowHeight / 2 + 20);
+		}		
+		
+		function handleMouseMovement(evt) {
+			let isClickable = false;
+			const canvasRectangle = theCanvas.getBoundingClientRect();
+			const mouseX = evt.clientX - canvasRectangle.left;
+			const mouseY = evt.clientY - canvasRectangle.top;
+			if (currentScreen == ornamentScreen) {				
+				for (let i = 0; i < Math.min(todayDate, pictureArray.length); i++) {
+					const ornamentCenterX = ornamentData[i].centerX;
+					const ornamentCenterY = ornamentData[i].centerY;
+					const xDistance = mouseX - ornamentCenterX;
+					const yDistance = mouseY - ornamentCenterY;
+					if (Math.sqrt(xDistance * xDistance + yDistance * yDistance) <= ornamentSize / 2) {
+						isClickable = true;
+					}
+				}	
+			}
+			else if (currentScreen == pictureScreen) {
+				if (buttonX <= mouseX && mouseX <= buttonX + buttonWidth
+					&& buttonY <= mouseY && mouseY <= buttonY + buttonHeight) {
+					isClickable = true;
+				}
+			}
+			if (isClickable) {
+				theCanvas.style.cursor = "pointer";
+			}
+			else {
+				theCanvas.style.cursor = "default";
+			}	
+		}
+		
+		function handleMouseClick(evt) {
+			const canvasRectangle = theCanvas.getBoundingClientRect();
+			const mouseX = evt.clientX - canvasRectangle.left;
+			const mouseY = evt.clientY - canvasRectangle.top;
+			if (currentScreen == ornamentScreen) {				
+				for (let i = 0; i < Math.min(todayDate, pictureArray.length); i++) {
+					const ornamentCenterX = i % rowsAndColumns * columnSize + columnSize / 2;
+					const ornamentCenterY = Math.floor(i / rowsAndColumns) * rowSize + rowSize / 2;
+					const xDistance = mouseX - ornamentCenterX;
+					const yDistance = mouseY - ornamentCenterY;
+					if (Math.sqrt(xDistance * xDistance + yDistance * yDistance) <= ornamentSize / 2) {
+						currentScreen = pictureScreen;
+						selectedPicture = i;
+						main();
+					}
+				}
+			}
+			else if (currentScreen == pictureScreen) {
+				if (buttonX <= mouseX && mouseX <= buttonX + buttonWidth
+					&& buttonY <= mouseY && mouseY <= buttonY + buttonHeight) {
+					currentScreen = ornamentScreen;
+					main();
+				}
+			}
+		}
+		
+	</script>
+	<style>
+		body {
+			background: green;
+		}
+		#theCanvas {
+			display: block;
+			margin-top: 10px;
+			margin-left: auto;
+			margin-right: auto;
+			background: black;
+		}
+		#attributionDiv {
+			color: #cccccc;
+			text-align: center;
+			background-color: black;
+			width: 800;
+			display: block;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		#attributionDiv a {
+			color: blue;
+		}
+	</style>
+</head>
+
+<body>
+	<canvas id="theCanvas" width="800" height="600"></canvas>
+	<div id="attributionDiv"></div>
+</body>
+</html>
